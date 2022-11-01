@@ -1,0 +1,172 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `mydb` DEFAULT CHARACTER SET utf8 ;
+USE `mydb` ;
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Emisoras`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Emisoras` (
+  `cod_emisora` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  PRIMARY KEY (`cod_emisora`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Franjas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Franjas` (
+  `cod_franja` INT NOT NULL,
+  `nombre_franja` VARCHAR(45) NULL,
+  `hora_desde` INT NOT NULL,
+  `hora_hasta` INT NULL,
+  PRIMARY KEY (`cod_franja`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`programas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`programas` (
+  `cod_programa` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `modalidad` INT NULL,
+  `duracion_seg` INT NULL,
+  `cortes` INT NULL,
+  `duracion_cortes_Seg` INT NULL,
+  `Franjas_cod_franja` INT NULL,
+  PRIMARY KEY (`cod_programa`),
+  INDEX `fk_programas_Franjas1_idx` (`Franjas_cod_franja` ASC),
+  CONSTRAINT `fk_programas_Franjas1`
+    FOREIGN KEY (`Franjas_cod_franja`)
+    REFERENCES `mydb`.`Franjas` (`cod_franja`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Emisoras_has_programas`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`Emisoras_has_programas` (
+  `Emisoras_cod_emisora` INT NOT NULL,
+  `programas_cod_programa` INT NOT NULL,
+  PRIMARY KEY (`Emisoras_cod_emisora`, `programas_cod_programa`),
+  INDEX `fk_Emisoras_has_programas_programas1_idx` (`programas_cod_programa` ASC),
+  INDEX `fk_Emisoras_has_programas_Emisoras_idx` (`Emisoras_cod_emisora` ASC),
+  CONSTRAINT `fk_Emisoras_has_programas_Emisoras`
+    FOREIGN KEY (`Emisoras_cod_emisora`)
+    REFERENCES `mydb`.`Emisoras` (`cod_emisora`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Emisoras_has_programas_programas1`
+    FOREIGN KEY (`programas_cod_programa`)
+    REFERENCES `mydb`.`programas` (`cod_programa`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`cortes_programa`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`cortes_programa` (
+  `cod_programa` INT NOT NULL,
+  `num_corte` INT NOT NULL,
+  `duracion_corte_seg` INT NULL,
+  PRIMARY KEY (`cod_programa`, `num_corte`),
+  INDEX `fk_cortes_programa_programas1_idx` (`cod_programa` ASC),
+  CONSTRAINT `fk_cortes_programa_programas1`
+    FOREIGN KEY (`cod_programa`)
+    REFERENCES `mydb`.`programas` (`cod_programa`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`precios_franja`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`precios_franja` (
+  `cod_franja` INT NOT NULL,
+  `modalidad` INT NOT NULL,
+  `precio` INT NULL,
+  INDEX `fk_precios_franja_Franjas1_idx` (`cod_franja` ASC),
+  PRIMARY KEY (`cod_franja`, `modalidad`),
+  CONSTRAINT `fk_precios_franja_Franjas1`
+    FOREIGN KEY (`cod_franja`)
+    REFERENCES `mydb`.`Franjas` (`cod_franja`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`agencias`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`agencias` (
+  `cod_agencia` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  PRIMARY KEY (`cod_agencia`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`comerciales`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`comerciales` (
+  `cod_comercial` INT NOT NULL,
+  `nombre` VARCHAR(45) NULL,
+  `duracion` INT NULL,
+  `cod_agencia` INT NOT NULL,
+  PRIMARY KEY (`cod_comercial`),
+  INDEX `fk_comerciales_agencias1_idx` (`cod_agencia` ASC),
+  CONSTRAINT `fk_comerciales_agencias1`
+    FOREIGN KEY (`cod_agencia`)
+    REFERENCES `mydb`.`agencias` (`cod_agencia`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`comerciales_x_programa`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mydb`.`comerciales_x_programa` (
+  `cod_programa` INT NOT NULL,
+  `fecha` DATE NOT NULL,
+  `num_corte` INT NULL,
+  `segs_contratados` INT NULL,
+  `modalidad` INT NOT NULL,
+  `cod_comercial` INT NOT NULL,
+  PRIMARY KEY (`fecha`, `cod_programa`),
+  INDEX `fk_comerciales_x_programa_programas1_idx` (`cod_programa` ASC),
+  INDEX `fk_comerciales_x_programa_comerciales1_idx` (`cod_comercial` ASC),
+  CONSTRAINT `fk_comerciales_x_programa_programas1`
+    FOREIGN KEY (`cod_programa`)
+    REFERENCES `mydb`.`programas` (`cod_programa`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_comerciales_x_programa_comerciales1`
+    FOREIGN KEY (`cod_comercial`)
+    REFERENCES `mydb`.`comerciales` (`cod_comercial`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
